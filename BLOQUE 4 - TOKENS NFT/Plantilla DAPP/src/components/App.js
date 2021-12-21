@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import './App.css';
 import Web3 from 'web3'
 import Color from '../abis/Color.json'
+import { create } from 'ipfs-http-client';
 
 class App extends Component {
+
+  ipfs;
 
   async componentWillMount() {
     await this.loadWeb3()
@@ -61,6 +64,7 @@ class App extends Component {
       totalSupply: 0,
       colors: []
     }
+    this.ipfs = create({host: 'ipfs.infura.io', port: '5001', protocol: 'http'})
   }
 
   // Función para un nuevo Color como NFT
