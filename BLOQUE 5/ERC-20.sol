@@ -15,7 +15,7 @@ interface IERC20 {
     function allowance(address owner, address spender) external view returns (uint256);
 
     // Devuelve un valor booleano resultado de la operacion indicada
-    function transfer(address recipient, uint256 amount) external view returns (bool);
+    function transfer(address recipient, uint256 amount) external returns (bool);
 
     // Devuelve un valor booleano con el resultado de la operacion de gasto
     function approve(address spender, uint256 amount) external returns (bool);
@@ -24,7 +24,7 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 
     // Evento que se debe emitir cuando una cantidad de tokens pase de un origen a un destino
-    event transfer(address indexed from, address indexed to, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
     // Evento que se debe emitir cuando se establece una asignacion con el metodo allowance()
     event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -37,7 +37,7 @@ contract ERC20Basic is IERC20 {
     string public constant symbol = "KLM";
     uint8 public constant decimals = 18;
 
-    event transfer(address indexed from, address indexed to, uint256 tokens);
+    event Transfer(address indexed from, address indexed to, uint256 tokens);
     event Approval(address indexed owner, address indexed spender, uint256 tokens);
 
     using SafeMath for uint256;
@@ -68,7 +68,7 @@ contract ERC20Basic is IERC20 {
         return allowed[owner][delegate];
     }
 
-    function transfer(address recipient, uint256 amount) public override view returns (bool){
+    function transfer(address recipient, uint256 numTokens) public override returns (bool){
         require(numTokens <= balances[msg.sender], "No dispones de suficientes tokens");
         balances[msg.sender] = balances[msg.sender].sub(numTokens);
         balances[recipient] = balances[recipient].add(numTokens);
@@ -78,7 +78,7 @@ contract ERC20Basic is IERC20 {
         return true;
     }
 
-    function approve(address delegate, uint256 amount) public override returns (bool){
+    function approve(address delegate, uint256 numTokens) public override returns (bool){
         allowed[msg.sender][delegate] = numTokens;
 
         emit Approval(msg.sender, delegate, numTokens);
@@ -86,8 +86,16 @@ contract ERC20Basic is IERC20 {
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool){
+    function transferFrom(address owner, address buyer, uint256 numTokens) public override returns (bool){
+        require(numTokens <= balances[owner], "No dispones de suficientes tokens");
+        require(numTokens <= allowed[owner][msg.sender], "No tienes los suficientes tokens permitidos por el owner");
+        balances[owner] = balances[owner].sub(numTokens);
+        allowed[owner][msg.sender] = allowed[owner][msg.sender].sub(numTokens);
+        balances[buyer] = balances[buyer].add(numTokens);
 
+        emit Transfer(owner, buyer, numTokens);
+
+        return true;
     }
 
 }
